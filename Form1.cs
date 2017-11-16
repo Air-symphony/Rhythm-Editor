@@ -19,6 +19,9 @@ namespace DirectXSample
             InitializeComponent();
             child = new DXWindow(this);
 
+            textBox1.Width = this.ClientSize.Width / 2;
+            textBox1.Height = this.ClientSize.Height;
+
             // DirectXウィンドウの追加
             //child = new DirectXWindow(this);
         }
@@ -35,7 +38,6 @@ namespace DirectXSample
                 child.Show();
                 child.Idle();
             }*/
-
             base.OnShown(e);
         }
 
@@ -54,7 +56,10 @@ namespace DirectXSample
             }*/
             textBox1.Width = this.ClientSize.Width / 2;
             textBox1.Height = this.ClientSize.Height;
-
+            if (child != null)
+            {
+                child.Resize(this.ClientSize.Width / 2, this.ClientSize.Height);
+            }
             base.OnResize(e);
         }
 

@@ -11,8 +11,8 @@ namespace CinderellaEditor
 {
     class DXWindow
     {
-        int Width = 400;
-        int Height = 700;
+        int Width = 0;
+        int Height = 0;
         MusicGraphics graph;
         public DXWindow(Form parent)
         {
@@ -32,6 +32,8 @@ namespace CinderellaEditor
                 // 初期化に失敗した場合は終了
                 return;
             }
+            Width = parent.Width / 2;
+            Height = parent.Height;
             graph = new MusicGraphics(Width, Height);
             DrawText(0, 100, "設定完了");
         }
@@ -57,6 +59,16 @@ namespace CinderellaEditor
             DX.DrawLine(Width - 1, 0, Width - 1, Height - 1, color);
             DX.DrawLine(Width - 1, Height - 1, 0, Height - 1, color);
             DX.DrawLine(0, Height - 1, 0, 0, color);
+        }
+
+        public void Resize(int Width, int Height)
+        {
+            this.Width = Width;
+            this.Height = Height;
+            if (graph != null)
+            {
+                graph.Resize(this.Width, this.Height);
+            }
         }
     }
 }

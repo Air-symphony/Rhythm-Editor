@@ -41,5 +41,11 @@ namespace CinderellaEditor
                 DX.DrawLine(x + distance * 1 - 20, dis_y * i, x + distance * 5 + 20, dis_y * i, color);
             }
         }
+
+        public void Resize(int Width, int Height)
+        {
+            this.Width = Width;
+            this.Height = Height;
+        }
     }
 }
