@@ -3,13 +3,21 @@ using System.IO;
 using System.Windows.Forms;
 using System.Drawing;
 using CinderellaEditor;
+using SlimDX.DirectInput;
+using System.Runtime.InteropServices;
 
 namespace DirectXSample
 {
     public partial class Form1 : Form
     {
-        //DirectXWindow child;
+        const int EM_LINEINDEX = 0xBB;
+        const int EM_LINEFROMCHAR = 0xC9;
+
+        [DllImport("User32.Dll")]
+        private static extern int SendMessage(IntPtr hWnd, int Msg, int wParam, int lParam);
+        
         DXWindow child;
+        int index = 1;
         /// <summary>
         /// コンストラクタ
         /// </summary>
@@ -21,9 +29,6 @@ namespace DirectXSample
 
             textBox1.Width = this.ClientSize.Width / 2;
             textBox1.Height = this.ClientSize.Height;
-
-            // DirectXウィンドウの追加
-            //child = new DirectXWindow(this);
         }
 
         /// <summary>
@@ -32,12 +37,11 @@ namespace DirectXSample
         /// <param name="e"></param>
         protected override void OnShown(EventArgs e)
         {
-            // DirectX子ウィンドウの表示を開始
-            /*if (child != null && !child.IsDisposed)
+
+            if (child != null)
             {
-                child.Show();
-                child.Idle();
-            }*/
+                child.DrawView();
+            }
             base.OnShown(e);
         }
 
@@ -47,18 +51,11 @@ namespace DirectXSample
         /// <param name="e"></param>
         protected override void OnResize(EventArgs e)
         {
-            // 子ウィンドウのリサイズ
-            /*if (child != null && child.Visible)
-            {
-                // 親の描画領域ぴったりに合わせる
-                child.Width = this.ClientSize.Width - 100;
-                child.Height = this.ClientSize.Height - 100;
-            }*/
             textBox1.Width = this.ClientSize.Width / 2;
             textBox1.Height = this.ClientSize.Height;
             if (child != null)
             {
-                child.Resize(this.ClientSize.Width / 2, this.ClientSize.Height);
+                child.DrawView();
             }
             base.OnResize(e);
         }
@@ -68,12 +65,7 @@ namespace DirectXSample
         /// </summary>
         public void MainLoop()
         {
-            // DirectXウィンドウ更新
-            /*if (child != null && child.Visible)
-            {
-                child.Idle();
-            }*/
-            child.DrawMainView();
+
         }
         private void 保存ToolStripMenuItem_Click(object sender, EventArgs e)
         {
@@ -105,26 +97,80 @@ namespace DirectXSample
 
         private void textBox1_TextChanged(object sender, EventArgs e)
         {
-            textBox1.Multiline = true;
             textBox1.WordWrap = false;
             textBox1.ScrollBars = ScrollBars.Both;
-            //child.DrawText(0, 0, textBox1.Text);
-            child.DrawMainView();
+            int index = SendMessage(textBox1.Handle, EM_LINEFROMCHAR, -1, 0);
+            /*if (0 < index && index < textBox1.Lines.Length - 1)
+            {
+                string[] SendText = { textBox1.Lines[index], textBox1.Lines[index - 1], textBox1.Lines[index + 1] };
+                child.DrawNote(SendText);
+            }*/
+            child.DrawNote(SearchLine(index));
         }
 
-        private void panel1_Paint(object sender, PaintEventArgs e)
+        private void textBox1_OnMouseClickHandler(object sender, MouseEventArgs e)
         {
-
+            int index = SendMessage(textBox1.Handle, EM_LINEFROMCHAR, -1, 0);
+            /*if (0 < index && index < textBox1.Lines.Length - 1)
+            {
+                string[] SendText = { textBox1.Lines[index], textBox1.Lines[index - 1], textBox1.Lines[index + 1] };
+                child.DrawNote(SendText);
+            }*/
+            child.DrawNote(SearchLine(index));
         }
 
-        private void timer1_Tick(object sender, EventArgs e)
+        private void textBox1_OnKeyDownHandler(object sender, KeyEventArgs e)
         {
-
+            int maxIndex = (textBox1.Lines.Length - 1 >= 0) ? textBox1.Lines.Length - 1 : 0;
+            //child.DrawText(10, 100, e.KeyCode.ToString(), true);
+            if (e.KeyCode.ToString().Equals("Up") && index > 0)
+            {
+                index = SendMessage(textBox1.Handle, EM_LINEFROMCHAR, -1, 0) - 1;
+            }
+            else if (e.KeyCode.ToString().Equals("Down") && index < maxIndex)
+            {
+                index = SendMessage(textBox1.Handle, EM_LINEFROMCHAR, -1, 0) + 1;
+            }
+            else
+            {
+                index = SendMessage(textBox1.Handle, EM_LINEFROMCHAR, -1, 0);
+            }
+            /*if (0 < index && index < textBox1.Lines.Length - 1)
+            {
+                string[] SendText = { textBox1.Lines[index], textBox1.Lines[index - 1], textBox1.Lines[index + 1] };
+                child.DrawNote(SendText);
+            }*/
+            child.DrawNote(SearchLine(index));
         }
 
-        private void flowLayoutPanel1_Paint(object sender, PaintEventArgs e)
+        private string[] SearchLine(int index)
         {
+            int maxIndex = (textBox1.Lines.Length - 1 >= 0)? textBox1.Lines.Length - 1: 0;
+            int size = 3;
+            if (index <= 0)
+            {
+                size--;
+            }
+            if(index >= maxIndex)
+            {
+                size--;
+            }
 
+            string[] text = new string[size];
+            int i = 0;
+            text[i] = textBox1.Lines[index];
+            i++;
+
+            if (index > 0)
+            {
+                text[i] = textBox1.Lines[index - 1];
+                i++;
+            }
+            if (index < maxIndex)
+            {
+                text[i] = textBox1.Lines[index + 1];
+            }
+            return text;
         }
     }
 }
