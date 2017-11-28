@@ -64,7 +64,7 @@ namespace CinderellaEditor
             SynchronousLine(id, note);
 
             /*ロングノーツ実装*/
-            //LongLine(id, note);
+            LongLine(id, note);
 
             /*フリック連結線*/
             FlicLine(id, note);
@@ -106,8 +106,7 @@ namespace CinderellaEditor
 
             for (int i = 0; i < mainNote.Length; i++)
             {
-                if ((mainNote[i].bar_number == note.bar_number && 
-                     mainNote[i].channel == note.channel) ||
+                if (mainNote[i].channel != note.channel ||
                     mainNote[i].GetTiming() >= note.GetTiming()) break;
 
                 if (mainNote[i].type == 4)
@@ -118,8 +117,8 @@ namespace CinderellaEditor
                         int main_center_y = dis_y +
                             (int)(((double)(Height - dis_y * 2) / mainNote[i].rythem)
                              * (mainNote[i].rythem - mainNote[i].timing));
-                        DX.DrawLineBox(center_x, center_y,
-                                main_center_x, main_center_y, color);
+                        DX.DrawLineBox(center_x - 1, center_y,
+                                main_center_x + 1, main_center_y, color);
                         break;
                     }
                 }

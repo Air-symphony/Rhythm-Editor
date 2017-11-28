@@ -64,108 +64,117 @@ namespace CinderellaEditor
             int mainChannel;
             for (int line = 0; line < send.Length; line++)
             {
-                string text = send[line];
-                string channel_str = text.Split(',')[0];
-                int channel = -1;
-                bool writeNote = false;
-                for (int i = 0; i < 4; i++)
+                try
                 {
-                    if (channel_str.Equals("#" + i))
+                    string text = send[line];
+                    string channel_str = text.Split(',')[0];
+                    int channel = -1;
+                    bool writeNote = false;
+                    for (int i = 0; i < 4; i++)
                     {
-                        channel = int.Parse(channel_str[1].ToString());
-                        if (line == 0)
+                        if (channel_str.Equals("#" + i))
                         {
-                            mainChannel = channel;
+                            channel = int.Parse(channel_str[1].ToString());
+                            if (line == 0)
+                            {
+                                mainChannel = channel;
+                            }
+                            writeNote = true;
+                            break;
                         }
-                        writeNote = true;
-                        break;
                     }
-                }
-                if (writeNote == false)
-                {
-                    continue;
-                }
-
-                string[] NoteData = (text.Split(',')[1]).Split(':');
-                /*何小節目か取得*/
-                string bar_number_str = NoteData[0];
-                if (bar_number_str.Length != 3) continue;
-
-                int bar_number = 0;
-                for (int i = 0; i < bar_number_str.Length; i++)
-                {
-                    int c = int.Parse(bar_number_str[i].ToString());
-                    for (int k = i + 1; k < bar_number_str.Length; k++)
+                    if (writeNote == false)
                     {
-                        c *= 10;
+                        continue;
                     }
-                    bar_number += c;
-                }
-                /*選択中の行であれば*/
-                if (line == 0)
-                {
-                    main_bar_number = bar_number;
-                }
-                /*その他上下の行で、小節番号が異なる場合*/
-                else if (main_bar_number != bar_number)
-                {
-                    continue;
-                }
-                if (NoteData.Length <= 1) continue;
-                /*各小節内のノーツの特徴*/
-                string noteRythem = NoteData[1];
-                int Rythem = noteRythem.Length;
 
-                string noteFirstPos = "";
-                string noteEndPos = "";
-                if (NoteData.Length >= 3)
-                {
-                    noteFirstPos = noteEndPos = NoteData[2];
-                    if (NoteData.Length >= 4)
+                    string[] NoteData = (text.Split(',')[1]).Split(':');
+                    /*何小節目か取得*/
+                    string bar_number_str = NoteData[0];
+                    if (bar_number_str.Length != 3) continue;
+
+                    int bar_number = 0;
+                    for (int i = 0; i < bar_number_str.Length; i++)
                     {
-                        noteEndPos = NoteData[3];
+                        int c = int.Parse(bar_number_str[i].ToString());
+                        for (int k = i + 1; k < bar_number_str.Length; k++)
+                        {
+                            c *= 10;
+                        }
+                        bar_number += c;
                     }
-                }
-
-                for (int i = noteFirstPos.Length; i < Rythem; i++)
-                {
-                    noteFirstPos += "3";
-                }
-                for (int i = noteEndPos.Length; i < Rythem; i++)
-                {
-                    noteEndPos += "3";
-                }
-
-                Note[] note = new Note[Rythem];
-                DrawText(10, 40, bar_number + "小節目");
-                if (line != 0)
-                {
-                    DX.SetDrawBlendMode(DX.DX_BLENDMODE_ALPHA, 127);
-                }
-                int count = 0;
-                for (int i = 0; i < Rythem; i++)
-                {
-                    note[i] = new Note();
-                    int type = int.Parse(noteRythem[i].ToString());
-                    if (0 < type && type < 5)
+                    /*選択中の行であれば*/
+                    if (line == 0)
                     {
-                        int first = int.Parse(noteFirstPos[count].ToString());
-                        int end = int.Parse(noteEndPos[count].ToString());
-                        count++;
-                        note[i] = new Note(channel, bar_number, type, Rythem, i, first, end);
-                        //graph.DrawNote(end, Rythem, (int)Rythem - i, type);
-                        //graph.DrawNote(note[i]);
+                        main_bar_number = bar_number;
                     }
+                    /*その他上下の行で、小節番号が異なる場合*/
+                    else if (main_bar_number != bar_number)
+                    {
+                        continue;
+                    }
+                    if (NoteData.Length <= 1) continue;
+                    /*各小節内のノーツの特徴*/
+                    string noteRythem = NoteData[1];
+                    int Rythem = noteRythem.Length;
+
+                    string noteFirstPos = "";
+                    string noteEndPos = "";
+                    if (NoteData.Length >= 3)
+                    {
+                        noteFirstPos = noteEndPos = NoteData[2];
+                        if (NoteData.Length >= 4)
+                        {
+                            noteEndPos = NoteData[3];
+                        }
+                    }
+
+                    for (int i = noteFirstPos.Length; i < Rythem; i++)
+                    {
+                        noteFirstPos += "3";
+                    }
+                    for (int i = noteEndPos.Length; i < Rythem; i++)
+                    {
+                        noteEndPos += "3";
+                    }
+
+                    Note[] note = new Note[Rythem];
+                    if (line != 0)
+                    {
+                        DX.SetDrawBlendMode(DX.DX_BLENDMODE_ALPHA, 127);
+                    }
+                    int count = 0;
+                    for (int i = 0; i < Rythem; i++)
+                    {
+                        note[i] = new Note();
+                        int type = int.Parse(noteRythem[i].ToString());
+                        if (0 < type && type < 5)
+                        {
+                            int first = int.Parse(noteFirstPos[count].ToString());
+                            int end = int.Parse(noteEndPos[count].ToString());
+                            count++;
+                            note[i] = new Note(channel, bar_number, type, Rythem, i, first, end);
+                            //graph.DrawNote(end, Rythem, (int)Rythem - i, type);
+                            //graph.DrawNote(note[i]);
+                        }
+                    }
+                    if (line == 0)
+                    {
+                        DrawText(10, 40, bar_number + "小節目 " + Rythem +"拍子");
+                        graph.SetMainNote(note);
+                    }
+                    graph.DrawNote(note);
                 }
-                if (line == 0)
+                catch (Exception ex)
                 {
-                    graph.SetMainNote(note);
+                    DX.DrawString(10, this.Height - 100, line + ":" + ex.Message, DX.GetColor(255, 255, 255));
                 }
-                graph.DrawNote(note);
-                
+                finally
+                {
+                    DX.SetDrawBlendMode(DX.DX_BLENDMODE_NOBLEND, 255);
+                    DX.ScreenFlip();
+                }
             }
-            DX.SetDrawBlendMode(DX.DX_BLENDMODE_NOBLEND, 255);
-            DX.ScreenFlip();
         }
 
         public void DrawWindowLine()

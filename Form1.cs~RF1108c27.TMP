@@ -5,7 +5,6 @@ using System.Drawing;
 using CinderellaEditor;
 using SlimDX.DirectInput;
 using System.Runtime.InteropServices;
-using System.Text;
 
 namespace DirectXSample
 {
@@ -19,9 +18,6 @@ namespace DirectXSample
         
         DXWindow child;
         int index = 1;
-        string FileName = "";
-        string WindowName = "Cinderella Editor";
-        string[] cmds;
         /// <summary>
         /// コンストラクタ
         /// </summary>
@@ -33,15 +29,6 @@ namespace DirectXSample
 
             textBox1.Width = this.ClientSize.Width / 2;
             textBox1.Height = this.ClientSize.Height;
-            上書き保存ToolStripMenuItem.Enabled = false;
-            cmds = Environment.GetCommandLineArgs();
-            if (cmds.Length > 1)
-            {
-                FileName = cmds[0];
-                FileName = cmds[1];
-                textBox1.Text = File.ReadAllText(FileName);
-            }
-            this.Text = WindowName + "  " + cmds[0];
         }
 
         /// <summary>
@@ -86,11 +73,7 @@ namespace DirectXSample
             dialog.Filter = "テキストファイル(*.txt)|*.txt|すべてのファイル(*.*)|*.*";
             //dialog.Title = "ファイルを保存する";
             if (dialog.ShowDialog() == DialogResult.OK)
-            {
                 File.WriteAllText(dialog.FileName, textBox1.Text);
-                FileName = dialog.FileName;
-            }
-            this.Text = WindowName + "  " + this.FileName;
         }
 
         private void 読み込みToolStripMenuItem_Click(object sender, EventArgs e)
@@ -99,11 +82,7 @@ namespace DirectXSample
             dialog.Filter = "テキストファイル(*.txt)|*.txt|すべてのファイル(*.*)|*.*";
             //dialog.Title = "ファイルを読み込む";
             if (dialog.ShowDialog() == DialogResult.OK)
-            {
                 textBox1.Text = File.ReadAllText(dialog.FileName);
-                FileName = dialog.FileName;
-            }
-            this.Text = WindowName + "  " + this.FileName;
         }
 
         private void 終了ToolStripMenuItem_Click(object sender, EventArgs e)
@@ -116,33 +95,27 @@ namespace DirectXSample
             textBox1.Undo();
         }
 
-        private void MenuItemFileSave_Click(object sender, EventArgs e)
-        {
-            System.IO.File.WriteAllText(this.FileName, textBox1.Text,
-                    Encoding.GetEncoding("UTF-8"));
-            // タイトルバーにファイル名を表示する
-            this.Text = WindowName + "  " + this.FileName;
-            // ファイル名が判明したため「上書き保存」を有効にする
-            上書き保存ToolStripMenuItem.Enabled = false;
-        }
-
         private void textBox1_TextChanged(object sender, EventArgs e)
         {
             textBox1.WordWrap = false;
             textBox1.ScrollBars = ScrollBars.Both;
             int index = SendMessage(textBox1.Handle, EM_LINEFROMCHAR, -1, 0);
-            string[] text = SearchLine(index);
-            if (text != null)
+            /*if (0 < index && index < textBox1.Lines.Length - 1)
             {
-                child.DrawNote(text);
-            }
-            this.Text = WindowName + "* " + this.FileName;
-            上書き保存ToolStripMenuItem.Enabled = true;
+                string[] SendText = { textBox1.Lines[index], textBox1.Lines[index - 1], textBox1.Lines[index + 1] };
+                child.DrawNote(SendText);
+            }*/
+            child.DrawNote(SearchLine(index));
         }
 
         private void textBox1_OnMouseClickHandler(object sender, MouseEventArgs e)
         {
             int index = SendMessage(textBox1.Handle, EM_LINEFROMCHAR, -1, 0);
+            /*if (0 < index && index < textBox1.Lines.Length - 1)
+            {
+                string[] SendText = { textBox1.Lines[index], textBox1.Lines[index - 1], textBox1.Lines[index + 1] };
+                child.DrawNote(SendText);
+            }*/
             string[] text = SearchLine(index);
             if (text != null)
             {
@@ -166,56 +139,39 @@ namespace DirectXSample
             {
                 index = SendMessage(textBox1.Handle, EM_LINEFROMCHAR, -1, 0);
             }
-
-            string[] text = SearchLine(index);
-            if (text != null)
+            /*if (0 < index && index < textBox1.Lines.Length - 1)
             {
-                child.DrawNote(text);
-            }
+                string[] SendText = { textBox1.Lines[index], textBox1.Lines[index - 1], textBox1.Lines[index + 1] };
+                child.DrawNote(SendText);
+            }*/
+            child.DrawNote(SearchLine(index));
         }
 
         private string[] SearchLine(int index)
         {
-            string[] text = null;
-            try
+            int maxIndex = (textBox1.Lines.Length - 1 >= 0)? textBox1.Lines.Length - 1: 0;
+            int size = 3;
+            if (index <= 0)
             {
-                int maxIndex = textBox1.Lines.Length;
-
-                int size = 1;
-                int verticalSize = 2;
-                for (int i = 0; i < verticalSize; i++)
-                {
-                    if (index > i)
-                    {
-                        size++;
-                    }
-                    if (index < maxIndex - (i + 1))
-                    {
-                        size++;
-                    }
-                }
-                text = new string[size];
-                text[0] = textBox1.Lines[index];
-                int id = 1;
-
-                for (int i = 0; i < verticalSize; i++)
-                {
-                    if (index > i)
-                    {
-                        text[id] = textBox1.Lines[index - (i + 1)];
-                        id++;
-                    }
-                    if (index < maxIndex - (i + 1))
-                    {
-                        text[id] = textBox1.Lines[index + (i + 1)];
-                        id++;
-                    }
-                }
+                size--;
             }
-            catch (Exception ex)
+            if(index >= maxIndex)
             {
-                //Console.Write(ex.Message + "\n");
-                text = null;
+                size--;
+            }
+
+            string[] text = textBox1.Lines;
+            text[0] = textBox1.Lines[index];
+            int i = 1;
+
+            if (index > 0)
+            {
+                text[i] = textBox1.Lines[index - 1];
+                i++;
+            }
+            if (index < maxIndex)
+            {
+                text[i] = textBox1.Lines[index + 1];
             }
             return text;
         }
